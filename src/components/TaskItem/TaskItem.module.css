@@ -1,12 +1,38 @@
 .item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  border-bottom: 1px solid #ccc;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .75rem .9rem;
+  border-bottom: 1px solid #eee;
+  background: #fff;
 }
-
-.completed {
-  text-decoration: line-through;
-  color: gray;
+.item:last-child { border-bottom: none; }
+.left {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  flex: 1;
+}
+.title { font-size: .98rem; }
+.completed { text-decoration: line-through; color: #94a3b8; }
+.actions { display: flex; gap: .5rem; }
+.link {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #2563eb;
+}
+.danger {
+  border: none;
+  background: #ef4444;
+  color: #fff;
+  border-radius: 6px;
+  padding: .35rem .6rem;
+  cursor: pointer;
+}
+.editInput {
+  padding: .3rem .5rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
 }
