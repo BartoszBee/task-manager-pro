@@ -1,11 +1,16 @@
-import TaskForm from "../components/TaskForm/TaskForm";
+import { lazy, Suspense } from "react";
 import Filters from "../components/Filters/Filters";
 import TaskList from "../components/TaskList/TaskList";
+import Loader from "../components/Loader/Loader";
+
+const TaskForm = lazy(() => import("../components/TaskForm/TaskForm"));
 
 function Home() {
   return (
     <main>
-      <TaskForm />
+      <Suspense fallback={<Loader />}>
+        <TaskForm />
+      </Suspense>
       <Filters />
       <TaskList />
     </main>

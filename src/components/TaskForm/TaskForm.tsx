@@ -1,4 +1,4 @@
-import { useState, useCallback} from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import type { FormEvent } from "react";
 import { useTasks } from "../../context/TaskContext";
 import styles from "./TaskForm.module.css";
@@ -7,6 +7,12 @@ function TaskForm() {
   const { addTask } = useTasks();
   const [title, setTitle] = useState("");
   const [error, setError] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // autofocus na mount (gdy komponent dociągnie się lazy)
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   const onSubmit = useCallback(
     (e: FormEvent) => {
@@ -19,23 +25,36 @@ function TaskForm() {
       addTask(trimmed);
       setTitle("");
       setError("");
+      inputRef.current?.focus();
     },
     [title, addTask]
   );
 
+  const onChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setTitle(e.target.value);
+      if (error) setError("");
+    },
+    [error]
+  );
+
   return (
-    <form className={styles.form} onSubmit={onSubmit} noValidate>
-      <input
-        className={styles.input}
-        placeholder="Dodaj zadanie…"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        aria-label="task-title"
-      />
-      <button className={styles.btn} type="submit">Dodaj</button>
+    <>
+      <form className={styles.form} onSubmit={onSubmit} noValidate>
+        <input
+          ref={inputRef}
+          className={styles.input}
+          placeholder="Dodaj zadanie…"
+          value={title}
+          onChange={onChange}
+          aria-label="task-title"
+        />
+        <button className={styles.btn} type="submit">
+          Dodaj
+        </button>
+      </form>
       {error && <p className={styles.error}>{error}</p>}
-    </form>
+    </>
   );
 }
-
 export default TaskForm;

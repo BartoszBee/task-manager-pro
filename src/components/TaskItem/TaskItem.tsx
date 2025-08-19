@@ -1,19 +1,36 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import styles from "./TaskItem.module.css";
 import type { Task } from "../../types/Task";
 import { useTasks } from "../../context/TaskContext";
 import cx from "classnames";
+import { memo } from "react";
 
-function TaskItem({ task }: { task: Task }) {
+function TaskItemBase({ task }: { task: Task }) {
   const { toggleTask, removeTask, editTask } = useTasks();
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
 
-  const save = () => {
+  const onToggle = useCallback(
+    () => toggleTask(task.id),
+    [toggleTask, task.id]
+  );
+  const onRemove = useCallback(
+    () => removeTask(task.id),
+    [removeTask, task.id]
+  );
+
+  const onEditToggle = useCallback(() => {
+    setTitle(task.title); // reset na aktualny tytuł przy wejściu w edycję
+    setIsEditing(true);
+  }, [task.title]);
+
+  const save = useCallback(() => {
     const trimmed = title.trim();
-    if (trimmed && trimmed !== task.title) editTask(task.id, trimmed);
+    if (trimmed && trimmed !== task.title) {
+      editTask(task.id, trimmed);
+    }
     setIsEditing(false);
-  };
+  }, [title, task.title, task.id, editTask]);
 
   return (
     <li className={styles.item}>
@@ -21,7 +38,7 @@ function TaskItem({ task }: { task: Task }) {
         <input
           type="checkbox"
           checked={task.completed}
-          onChange={() => toggleTask(task.id)}
+          onChange={onToggle}
           aria-label="toggle-task"
         />
         {isEditing ? (
@@ -29,21 +46,29 @@ function TaskItem({ task }: { task: Task }) {
             className={styles.editInput}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            onBlur={save}
+            // onBlur={save}
             onKeyDown={(e) => e.key === "Enter" && save()}
             autoFocus
           />
         ) : (
-          <span className={cx(styles.title, task.completed && styles.completed)}>
+          <span
+            className={cx(styles.title, task.completed && styles.completed)}
+          >
             {task.title}
           </span>
         )}
       </label>
       <div className={styles.actions}>
-        <button className={styles.link} onClick={() => setIsEditing((v) => !v)}>
-          {isEditing ? "Zapisz" : "Edytuj"}
-        </button>
-        <button className={styles.danger} onClick={() => removeTask(task.id)}>
+        {isEditing ? (
+          <button className={styles.link} onClick={save}>
+            Zapisz
+          </button>
+        ) : (
+          <button className={styles.link} onClick={onEditToggle}>
+            Edytuj
+          </button>
+        )}
+        <button className={styles.danger} onClick={onRemove}>
           Usuń
         </button>
       </div>
@@ -51,4 +76,11 @@ function TaskItem({ task }: { task: Task }) {
   );
 }
 
+// React.memo – re-render tylko jeśli zmieni się treść/stan taska
+const areEqual = (prev: { task: Task }, next: { task: Task }) =>
+  prev.task.id === next.task.id &&
+  prev.task.title === next.task.title &&
+  prev.task.completed === next.task.completed;
+
+const TaskItem = memo(TaskItemBase, areEqual);
 export default TaskItem;

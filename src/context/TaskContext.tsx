@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+} from "react";
 import type { Task, Filter } from "../types/Task";
 
 type State = {
@@ -32,18 +38,20 @@ function tasksReducer(state: State, action: Action): State {
     case "TOGGLE_TASK":
       return {
         ...state,
-        tasks: state.tasks.map(t =>
+        tasks: state.tasks.map((t) =>
           t.id === action.id ? { ...t, completed: !t.completed } : t
         ),
       };
     case "REMOVE_TASK":
-      return { ...state, tasks: state.tasks.filter(t => t.id !== action.id) };
+      return { ...state, tasks: state.tasks.filter((t) => t.id !== action.id) };
     case "EDIT_TASK": {
       const title = action.title.trim();
       if (!title) return state;
       return {
         ...state,
-        tasks: state.tasks.map(t => (t.id === action.id ? { ...t, title } : t)),
+        tasks: state.tasks.map((t) =>
+          t.id === action.id ? { ...t, title } : t
+        ),
       };
     }
     case "SET_FILTER":
@@ -72,7 +80,6 @@ const TaskContext = createContext<TaskContextValue | null>(null);
 export function TaskProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(tasksReducer, initialState);
 
- 
   useEffect(() => {
     try {
       const raw = localStorage.getItem("task-manager-pro");
@@ -80,37 +87,48 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         const parsed = JSON.parse(raw) as State;
         dispatch({ type: "HYDRATE", payload: parsed });
       }
-    } catch {}
+    } catch {
+      console.error("Problem z odczytem z localStorage.");
+    }
   }, []);
-
 
   useEffect(() => {
     try {
       localStorage.setItem("task-manager-pro", JSON.stringify(state));
-    } catch {}
+    } catch {
+      console.error("Problem z zapisem do localStorage.");
+    }
   }, [state]);
 
   // Akcje
   const addTask = (title: string) => dispatch({ type: "ADD_TASK", title });
   const toggleTask = (id: string) => dispatch({ type: "TOGGLE_TASK", id });
   const removeTask = (id: string) => dispatch({ type: "REMOVE_TASK", id });
-  const editTask = (id: string, title: string) => dispatch({ type: "EDIT_TASK", id, title });
-  const setFilter = (filter: Filter) => dispatch({ type: "SET_FILTER", filter });
+  const editTask = (id: string, title: string) =>
+    dispatch({ type: "EDIT_TASK", id, title });
+  const setFilter = (filter: Filter) =>
+    dispatch({ type: "SET_FILTER", filter });
 
   // Pochodne
   const filteredTasks = useMemo(() => {
     switch (state.filter) {
       case "active":
-        return state.tasks.filter(t => !t.completed);
+        return state.tasks.filter((t) => !t.completed);
       case "completed":
-        return state.tasks.filter(t => t.completed);
+        return state.tasks.filter((t) => t.completed);
       default:
         return state.tasks;
     }
   }, [state.tasks, state.filter]);
 
-  const activeCount = useMemo(() => state.tasks.filter(t => !t.completed).length, [state.tasks]);
-  const completedCount = useMemo(() => state.tasks.filter(t => t.completed).length, [state.tasks]);
+  const activeCount = useMemo(
+    () => state.tasks.filter((t) => !t.completed).length,
+    [state.tasks]
+  );
+  const completedCount = useMemo(
+    () => state.tasks.filter((t) => t.completed).length,
+    [state.tasks]
+  );
 
   const value: TaskContextValue = {
     state,
@@ -127,6 +145,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTasks() {
   const ctx = useContext(TaskContext);
   if (!ctx) throw new Error("useTasks must be used within TaskProvider");
