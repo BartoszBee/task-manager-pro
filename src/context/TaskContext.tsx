@@ -17,8 +17,9 @@ type Action =
   | { type: "TOGGLE_TASK"; id: string }
   | { type: "REMOVE_TASK"; id: string }
   | { type: "EDIT_TASK"; id: string; title: string }
-  | { type: "SET_FILTER"; filter: Filter }
-  | { type: "HYDRATE"; payload: State };
+  | { type: "SET_FILTER"; filter: Filter };
+
+const STORAGE_KEY = "task-manager-pro";
 
 const initialState: State = { tasks: [], filter: "all" };
 
@@ -56,11 +57,41 @@ function tasksReducer(state: State, action: Action): State {
     }
     case "SET_FILTER":
       return { ...state, filter: action.filter };
-    case "HYDRATE":
-      return action.payload;
+
     default:
       return state;
   }
+}
+
+function safeParse(raw: string | null): State | null {
+  if (!raw) return null;
+  try {
+    const data = JSON.parse(raw);
+
+    const okFilter =
+      data?.filter === "all" ||
+      data?.filter === "active" ||
+      data?.filter === "completed";
+    const okTasks =
+      Array.isArray(data?.tasks) &&
+      data.tasks.every(
+        (t: Task) =>
+          typeof t?.id === "string" &&
+          typeof t?.title === "string" &&
+          typeof t?.completed === "boolean" &&
+          typeof t?.createdAt === "number"
+      );
+    if (okFilter && okTasks) return data as State;
+  } catch {
+    console.error("Problem z odczytem z localStorage.");
+  }
+  return null;
+}
+
+function initState(): State {
+  if (typeof window === "undefined") return initialState;
+  const parsed = safeParse(localStorage.getItem(STORAGE_KEY));
+  return parsed ?? initialState;
 }
 
 type TaskContextValue = {
@@ -78,29 +109,16 @@ type TaskContextValue = {
 const TaskContext = createContext<TaskContextValue | null>(null);
 
 export function TaskProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(tasksReducer, initialState);
+  const [state, dispatch] = useReducer(tasksReducer, initialState, initState);
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem("task-manager-pro");
-      if (raw) {
-        const parsed = JSON.parse(raw) as State;
-        dispatch({ type: "HYDRATE", payload: parsed });
-      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
-      console.error("Problem z odczytem z localStorage.");
-    }
-  }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("task-manager-pro", JSON.stringify(state));
-    } catch {
-      console.error("Problem z zapisem do localStorage.");
+      console.error("Problem z zapisem danych w localStorage.");
     }
   }, [state]);
 
-  // Akcje
   const addTask = (title: string) => dispatch({ type: "ADD_TASK", title });
   const toggleTask = (id: string) => dispatch({ type: "TOGGLE_TASK", id });
   const removeTask = (id: string) => dispatch({ type: "REMOVE_TASK", id });
@@ -109,7 +127,6 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   const setFilter = (filter: Filter) =>
     dispatch({ type: "SET_FILTER", filter });
 
-  // Pochodne
   const filteredTasks = useMemo(() => {
     switch (state.filter) {
       case "active":
