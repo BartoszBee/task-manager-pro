@@ -1,11 +1,14 @@
-Task Manager Pro — README
+🗂️ Task Manager Pro
 
 📝 Opis
 
-Task Manager Pro to przejrzysta aplikacja do zarządzania zadaniami z możliwością dodawania, filtrowania i oznaczania statusów.
-Projekt pokazuje pracę z React, Context API, modułowymi stylami oraz pełną strukturą komponentową.
+Task Manager Pro to przejrzysta i intuicyjna aplikacja do zarządzania zadaniami,
+umożliwiająca dodawanie, filtrowanie, usuwanie oraz oznaczanie statusów tasków.
+Projekt prezentuje praktyczne wykorzystanie React, Context API, useReducer oraz modułowej struktury komponentów.
 
 🚀 Technologie
+
+W projekcie wykorzystano:
 
 "React"
 
@@ -25,12 +28,14 @@ Projekt pokazuje pracę z React, Context API, modułowymi stylami oraz pełną s
 
 🎯 Funkcje aplikacji
 
-Dodawanie nowych zadań
+➕ Dodawanie nowych zadań
 
-Usuwanie zadań
+🗑️ Usuwanie zadań
 
-Oznaczanie jako ukończone
+✅ Oznaczanie jako ukończone
 
-Filtrowanie według kategorii i statusu
+🔍 Filtrowanie według kategorii i statusu
 
-Ładowanie danych (Loader)
+⏳ Komponent Loader
+
+🚫 Obsługa błędów przez Error Boundary
